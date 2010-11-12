@@ -18,6 +18,7 @@
 define ruby-enterprise::gem(
     $ensure = 'present'
 ){
+    require gcc
     include ruby-enterprise
     if $name =~ /\-(\d|\.)+$/ {
         $real_name = regsubst($name,'^(.*)-(\d|\.)+$','\1')
