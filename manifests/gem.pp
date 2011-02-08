@@ -17,7 +17,7 @@
 #
 define ruby-enterprise::gem(
   $ensure = present,
-  source => false,
+  source => false
 ){
   require gcc
   include ruby-enterprise
