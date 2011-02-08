@@ -29,9 +29,9 @@ define ruby-enterprise::gem(
   }
 
   if $source {
-    $real_source => "-s $source",
+    $real_source => "-s $source"
   } else {
-    $real_source => '',
+    $real_source => ''
   }
 
   if $ree_gem_version {
