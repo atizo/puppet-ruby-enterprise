@@ -16,43 +16,50 @@
 #       ruby-enterpise::gem{'ruby-net-ldap-0.0.3': ensure => absent }
 #
 define ruby-enterprise::gem(
-    $ensure = 'present'
+  $ensure = present,
+  source => false,
 ){
-    require gcc
-    include ruby-enterprise
-    if $name =~ /\-(\d|\.)+$/ {
-        $real_name = regsubst($name,'^(.*)-(\d|\.)+$','\1')
-        $ree_gem_version = regsubst($name,'^(.*)-(\d+(\d|\.)+)$','\2')
-    } else {
-        $real_name = $name
-    }
+  require gcc
+  include ruby-enterprise
+  if $name =~ /\-(\d|\.)+$/ {
+    $real_name = regsubst($name,'^(.*)-(\d|\.)+$','\1')
+    $ree_gem_version = regsubst($name,'^(.*)-(\d+(\d|\.)+)$','\2')
+  } else {
+    $real_name = $name
+  }
 
-    if $ree_gem_version {
-        $ree_gem_version_str = "-v ${ree_gem_version}"
-        $ree_gem_version_check_str = $ree_gem_version
-    } else {
-        $ree_gem_version_check_str = '.*'
-    }
+  if $source {
+    $real_source => "-s $source",
+  } else {
+    $real_source => '',
+  }
 
-    if $ensure == 'present' {
-        $ree_gem_cmd = 'install'
-    } else {
-        $ree_gem_cmd = 'uninstall -x'
-    }
+  if $ree_gem_version {
+    $ree_gem_version_str = "-v $ree_gem_version"
+    $ree_gem_version_check_str = $ree_gem_version
+  } else {
+    $ree_gem_version_check_str = '.*'
+  }
 
-    exec{"manage_ree_gem_${name}":
-        command => "/opt/ruby-enterprise/bin/gem ${ree_gem_cmd} ${real_name} ${ree_gem_version_str}",
-        require => Package['ruby-enterprise-rubygems'],
-    }
+  if $ensure == 'present' {
+    $ree_gem_cmd = 'install'
+  } else {
+    $ree_gem_cmd = 'uninstall -x'
+  }
 
-    $ree_gem_cmd_check_str = "/opt/ruby-enterprise/bin/gem list | egrep -q '^${real_name} \\(${ree_gem_version_check_str}\\)\$'"
-    if $ensure == 'present' {
-        Exec["manage_ree_gem_${name}"]{
-           unless => $ree_gem_cmd_check_str
-        }
-    } else {
-        Exec["manage_ree_gem_${name}"]{
-           onlyif => $ree_gem_cmd_check_str
-        }
+  exec{"manage_ree_gem_$name":
+    command => "/opt/ruby-enterprise/bin/gem $ree_gem_cmd $real_name $ree_gem_version_str $real_source",
+    require => Package['ruby-enterprise-rubygems'],
+  }
+
+  $ree_gem_cmd_check_str = "/opt/ruby-enterprise/bin/gem list | egrep -q '^$real_name \\($ree_gem_version_check_str\\)\$'"
+  if $ensure == 'present' {
+    Exec["manage_ree_gem_$name"]{
+       unless => $ree_gem_cmd_check_str,
     }
+  } else {
+    Exec["manage_ree_gem_$name"]{
+       onlyif => $ree_gem_cmd_check_str,
+    }
+  }
 }
